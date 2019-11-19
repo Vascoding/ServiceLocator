@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using ServiceLocator.Contracts;
 
-namespace ServiceLocator.Implementation
+namespace ServiceLocator.Implementations
 {
     public static class Container
     {
