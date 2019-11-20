@@ -12,27 +12,23 @@ namespace ServiceLocator.Implementations
         public static void Init(IServiceCollection serviceCollection)
             => Container.serviceCollection = serviceCollection;
 
-        public static void RegisterServices()
+        public static void RegisterServices<TMap>()
             => Assembly
-                .GetEntryAssembly()
+                .GetAssembly(typeof(TMap))
                 .GetTypes()
                 .Where(t => t.IsClass && t.GetInterface($"I{t.Name}") != null)
-                .Select(c => new
+                .Select(t => new
                 {
-                    Interface = c.GetInterface($"I{c.Name}"),
-                    Implementation = c
+                    Interface = t.GetInterface($"I{t.Name}"),
+                    Implementation = t
                 })
                 .ToList()
-                .ForEach(e => 
+                .ForEach(t => 
                 {
-                    if (e.Implementation.GetInterface(nameof(ISingleton)) != null)
-                    {
-                        RegisterSingleton(e.Interface, e.Implementation);
-                    }
-                    else
-                    {
-                        RegisterTransient(e.Interface, e.Implementation);
-                    }
+                    if (t.Implementation.GetInterface(nameof(ISingleton)) != null)
+                        RegisterSingleton(t.Interface, t.Implementation);
+                    if (t.Implementation.GetInterface(nameof(ITransient)) != null)
+                        RegisterTransient(t.Interface, t.Implementation);
                 });
 
         public static T RetrieveTransient<T>()

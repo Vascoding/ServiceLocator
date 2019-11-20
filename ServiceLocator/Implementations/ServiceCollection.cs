@@ -9,16 +9,16 @@ namespace ServiceLocator.Implementations
 {
     public class ServiceCollection : IServiceCollection
     {
-        private IDictionary<string, Type> transient = new Dictionary<string, Type>();
+        private readonly IDictionary<string, Type> transient = new Dictionary<string, Type>();
 
-        private IDictionary<string, object> singleton = new Dictionary<string, object>();
+        private readonly IDictionary<string, object> singleton = new Dictionary<string, object>();
 
-        public void AddTransient(Type interfaceType, Type implementationType)
-            => this.transient.Add(interfaceType.Name, implementationType);
+        public void AddTransient(Type contract, Type implementation)
+            => this.transient.Add(contract.Name, implementation);
 
-        public void AddSingleton(Type interfaceType, Type implementationType)
-            => this.singleton.Add(interfaceType.Name, CreateInstance(implementationType));
-        
+        public void AddSingleton(Type contract, Type implementation)
+            => this.singleton.Add(contract.Name, CreateInstance(implementation));
+
         public object RetrieveTransient(Type type)
             => this.CreateInstance(transient[type.Name]);
 
@@ -40,12 +40,12 @@ namespace ServiceLocator.Implementations
                 .GetParameters()
                 .Aggregate(new List<object>(), (acc, curr) =>
                 {
-                    acc.Add(GetInstance(curr.ParameterType));
+                    acc.Add(this.GetInstance(curr.ParameterType));
                     return acc;
                 }).ToArray();
 
         private object GetInstance(Type type)
-            => CreateInstance(Assembly.GetAssembly(type)
+            => this.CreateInstance(Assembly.GetAssembly(type)
                 .GetTypes()
                 .FirstOrDefault(e => type.IsAssignableFrom(e) && e.IsClass));
     }
